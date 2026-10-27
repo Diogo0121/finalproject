@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Loja do Zé</title>
+</head>
+
+<body>
+    <main class="pagina">
+        <div class="card">
+            <header class="card-cabecalho">
+                <h1>Loja do Zé</h1>
+                <p class="card-subtitulo">
+                    Gerencie as categorias de produtos
+                </p>
+            </header>
+
+            <div class="card-corpo">
+                <section class="sessao-form">
+                    <h2>Nova categoria</h2>
+
+                    <form id="form-categoria" class="form">
+                        <label for="descricao">Categoria</label>
+
+                        <input
+                            type="text"
+                            id="descricao"
+                            name="descricao"
+                            placeholder="Ex.: brinquedos"
+                            required
+                        >
+
+                        <div class="button-div">
+                            <button
+                                type="submit"
+                                class="btn btn-cadastrar"
+                            >
+                                Cadastrar
+                            </button>
+
+                            <button
+                                type="reset"
+                                class="btn btn-limpar"
+                            >
+                                Limpar
+                            </button>
+                        </div>
+                    </form>
+
+                    <p id="mensagem" class="mensagem"></p>
+
+                    <h2>Categorias</h2>
+                    <ul
+                        id="lista-categorias"
+                        class="lista-categorias"
+                    ></ul>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
