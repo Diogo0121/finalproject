@@ -1,14 +1,3 @@
 {
-    "version":2,
-    "builds":[
-        {"src":"server.js",
-        "use":"@versel/node",
-        "config":{
-            "includeFiles":["index.html", "app.js", "style.css"]
-        }
-        }
-    ],
-    "routes":[
-        {"src": "/(.*)","dest":"server.js"}
-    ]
+  "$schema": "https://openapi.vercel.sh/vercel.json"
 }
