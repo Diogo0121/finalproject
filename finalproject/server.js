@@ -110,3 +110,30 @@ const servidor = http.createServer(async (req, res) => {
 servidor.listen(PORTA, () => {
     console.log(`Loja do Zé rodando em http://localhost:${PORTA}`)
 })
+
+
+const express = require("express");
+const path = require("path");
+
+const app = express();
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use(express.static(path.join(__dirname, "public")));
+
+// suas rotas aqui
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+if (require.main === module) {
+  const PORT = process.env.PORT || 3001;
+
+  app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
+  });
+}
+
+module.exports = app;
