@@ -1,0 +1,721 @@
+chat, estou com um codigo, e preciso fazer ele funcionar até as 20:00 hoje, e quero sua ajuda, mas quero entender o que você criou pra fazer funcionar, então você vai arrumar o codigo, e me explicar o que cada linha que você adicionou faz, e o porque de você adicionou ela
+
+
+
+
+Manda o código aqui, Diogo. Se tiver vários arquivos, pode anexar o projeto em .zip. Junto, me diz o que o código deveria fazer, como você está rodando e qual erro aparece. Se ele roda mas dá um resultado errado, manda um exemplo do que sai e do que você esperava.
+
+Com isso, eu foco primeiro em fazer funcionar até as 20h. Depois te mostro o código corrigido e explico, linha por linha, o que adicionei ou alterei, o que cada mudança faz e por que ela foi necessária.
+
+vou mandar
+
+
+
+app.js
+//Este arquivo roda no Navegador (Cliente)
+// Ele não fala com o NEON: Chama as rotas /api do nosso server.js
+
+
+
+const lista = document.getElementById('lista-categorias')
+const formulario = document.getElementById('form-categoria')
+const campoDescricao = document.getElementById('descricao')
+const mensagem = document.getElementById('mensagem')
+
+
+let categorias = []
+let idEmEdicao = null
+
+
+async function carregarCategorias() {
+    lista.innerHTML = '<li  class="lista-vazia"> Carregando....</li>'
+    try {
+        const resposta = await fetch('/api/categorias')
+        categorias = await resposta.json()
+
+
+        if (!resposta.ok) throw new Error(categorias.error)
+        renderizarLista()
+    }
+    catch (error) {
+        mensagem.textContent = `Erro ${error.menssage}`
+    }
+}
+function renderizarLista() {
+    lista.innerHTML = ''
+    if (categorias.length === 0) {
+        lista.innerHTML = '<li class="lista-vazia">Nenhuma categoria cadastrada!</li>'
+        return
+    }
+    for (const categoria of categorias) {
+        lista.appendChild(
+            categoria.id_categoria === idEmEdicao ? criarItemEdicao(categoria) : criarItemVisualizacao(categoria)
+        )
+    }
+}
+function criarItemVisualizacao(categoria) {
+    const item = document.createElement('li')
+    item.className = 'categoria-item'
+
+
+    const info = document.createElement('span')
+    info.className = 'categoria-info'
+    info.innerHTML = `<span class="categoria-id">#${categoria.descricao}</span> ${categoria.descricao}`
+
+
+    const btnEditar = document.createElement('button')
+    btnEditar.textContent = 'Editar'
+    btnEditar.className = 'btn btn-editar'
+    btnEditar.addEventListener('click', () => {
+        idEmEdicao = categoria.id_categoria
+        conteudo = campoDescricao.value
+        editarCategoria(idEmEdicaom, conteudo)
+    })
+
+
+    const btnExcluir = document.createElement('button')
+    btnExcluir.textContent = 'Excluir'
+    btnExcluir.className = 'btn btn-excluir'
+    btnExcluir.addEventListener('click', () => {
+        idEmEdicao = categoria.id_categoria
+        excluirCategoria(idEmEdicao)
+    })
+
+
+    const acoes = document.createElement('div')
+    acoes.className = 'categoria-acoes'
+
+
+    acoes.append(btnEditar, btnExcluir)
+    item.append(info, acoes)
+    return item
+}
+async function editarCategoria(id, conteudo) {
+    try {
+        const resposta = await fetch('api/editarCategorias')
+    }
+}
+async function excluirCategoria(id_excluirCategoria) {
+
+
+
+    try {
+        const resposta = await fetch('api/excluirCategorias', {
+            method: 'POST',
+            headers: { 'Content-type': 'application/json' },
+            body: JSON.stringify({ id_categoria: id_excluirCategoria })
+        })
+        const dados = await resposta.json()
+
+
+        if (resposta.ok) {
+            mostrarMensagem(`Categoria "${dados.descricao}" Excluida!`)
+            campoDescricao.value = ''
+            carregarCategorias()
+        }
+        else {
+            mostrarMensagem(`Erro: ${dados.erro}`, 'erro')
+        }
+    }
+    catch (erro) {
+        mostrarMensagem(`Erro de conexão: ${erro.mensagem}`, erro)
+    }
+    // Não esquecer de envolver todas as funções assincronas em um try-catch
+}
+function montarLista(dados) {
+    lista.innerHTML = '<li>Carregando ....</li>'
+    if (dados.length === 0) {
+        lista.innerHTML = '<li>Nenhuma categoria cadastrada ....</li>'
+        return
+    }
+    lista.innerHTML = ''
+    for (const categoria of dados) {
+        const item = document.createElement('li')
+        item.textContent = `${categoria.id_categoria} - ${categoria.descricao}`
+        lista.appendChild(item)
+    }
+}
+
+
+
+formulario.addEventListener('submit', async (evento) => {
+    evento.preventDefault()
+
+
+    const resposta = await fetch('api/categorias', {
+        method: 'POST',
+        headers: { 'Content-type': 'application/json' },
+        body: JSON.stringify({ descricao: campoDescricao.value })
+    })
+    const dados = await resposta.json()
+
+
+    if (resposta.ok) {
+        mostrarMensagem(`Categoria "${dados.descricao}" cadastrada!`)
+        campoDescricao.value = ''
+        carregarCategorias()
+    }
+    else {
+        mostrarMensagem(`Erro: ${dados.erro}`, 'erro')
+    }
+
+
+})
+
+
+function criarItemEdicao(categoria) {
+    const item = document.createElement('li')
+    item.classList = 'categoria-item  categoria-item-edicao'
+
+
+    const input = document.createElement('input')
+
+
+    input.type = 'text'
+    input.value = categoria.descricao
+    input.className = 'input-edicao'
+
+
+    const btnSalvar = document.createElement('button')
+    btnSalvar.textContent = 'Salvar'
+    btnSalvar.className = 'btn btn-salvar'
+    btnSalvar.addEventListener('click', () => salvarEdicao(categoria, input.value))
+
+
+    const btnCancelar = document.createElement('button')
+    btnCancelar.textContent = 'Cancelar'
+    btnCancelar.className = 'btn btn-cancelar'
+    btnCancelar.addEventListener('click', () => {
+        idEmEdicao = null
+        renderizarLista()
+    })
+
+
+    const acoes = document.createElement('div')
+    acoes.className = 'categoria-acoes'
+    acoes.append(btnSalvar, btnCancelar)
+    item.append(input, acoes)
+    input.focus()
+    return item
+}
+
+
+
+function mostrarMensagem(texto, tipo = 'sucesso') {
+    mensagem.textContent = texto
+    mensagem.className = `mensagem mensagem-${tipo}`
+}
+
+
+
+carregarCategorias()
+
+
+
+
+
+
+
+
+
+
+
+index.html
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loja do Zé</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+
+<body>
+    <div class="pagina">
+        <div class="card">
+            <header class="card-cabecalho">
+                <h1>Loja do Zé</h1>
+                <p class="card-subtitulo">Gerencie a categoria de produtos</p>
+            </header>
+            <div class="card-corpo">
+                <section class="secao-form">
+                    <h2>Nova categoria</h2>
+                    <form id="form-categoria" class="form-categoria">
+                        <input type="text" id="descricao" placeholder="Ex: Brinquedos">
+                        <div class="buttonDiv">
+                            <button id="btnCadastrar" type="submit" class="btn btn-cadastrar">Cadastrar</button>
+                            <button id="btnLimpar" type="reset" class="btn btn-limpar">Limpar</button>
+                        </div>
+                    </form>
+                    <p id="mensagem"></p>
+                </section>
+
+
+                <section class="secao-lista">
+                    <h2>Categorias</h2>
+                    <ul id="lista-categorias"></ul>
+                </section>
+
+
+            </div>
+            <!-- Para iniciar o projeto de npm Start -->
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+
+
+</html>
+
+
+
+package-lock.json
+
+
+{
+  "name": "final",
+  "version": "1.0.0",
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {
+    "": {
+      "name": "final",
+      "version": "1.0.0",
+      "license": "ISC",
+      "dependencies": {
+        "dotenv": "^17.4.2"
+      },
+      "devDependencies": {}
+    },
+    "node_modules/dotenv": {
+      "version": "17.4.2",
+      "resolved": "https://registry.npmjs.org/dotenv/-/dotenv-17.4.2.tgz",
+      "integrity": "sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==",
+      "license": "BSD-2-Clause",
+      "engines": {
+        "node": ">=12"
+      },
+      "funding": {
+        "url": "https://dotenvx.com"
+      }
+    }
+  }
+}\
+
+
+
+
+
+
+
+package.json
+
+
+{
+  "name": "final",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
+  },
+  "devDependencies": {}
+}\
+
+
+
+
+
+
+script_db_quantum.js
+
+
+require ('dotenv').config({quiet:true})
+
+const DATABASE_URL = process.env.DATABASE_URL
+
+const host = new URL (DATABASE_URL).host
+
+const neonHttpEndpoint  = `https://${host}/sql`
+
+async function executarQueryNeon(querySQL, parametros) 
+{
+    try {
+        const resposta = await fetch(neonHttpEndpoint,
+            {
+                method:'POST',
+                headers:{
+                    'Neon-Connection-String':DATABASE_URL,
+                    'Content-Type': 'application/json'
+                },
+                body:JSON.stringify({
+                    query:querySQL,
+                    params:parametros
+                })
+            }
+        )
+
+        if(!resposta.ok)
+        {
+            const erroTexto = await resposta.text()
+            throw new Error(`Erro HTTP ${resposta.status}: ${erroTexto}`)
+        }
+        const dados = await resposta.json()
+        return dados.rows
+    } catch (error) {
+        console.error("Falha ao se comunicar com o banco de dados")
+        return null        
+    }   
+}
+
+module.exports = {executarQueryNeon}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+server.js
+
+
+
+// Servidor da Loja do Zé
+// O navegador conversa com ESTE servidor (mesma origem, então não há CORS).
+// Só o servidor conversa com o Neon, e a senha do banco nunca chega ao navegador.
+const http = require('http')
+const fs = require('fs')
+const path = require('path')
+const { executarQueryNeon } = require('./script_db_quantum.js')
+
+
+const PORTA = process.env.PORT || 3001
+
+
+const arquivos = {
+    '/': { arquivo: 'index.html', tipo: 'text/html; charset=utf-8' },
+    '/index.html': { arquivo: 'index.html', tipo: 'text/html; charset=utf-8' },
+    '/app.js': { arquivo: 'app.js', tipo: 'text/javascript; charset=utf-8' },
+    '/style.css': { arquivo: 'style.css', tipo: 'text/css; charset=utf-8' }
+}
+
+
+function responderJSON(res, status, dados) {
+    res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' })
+    res.end(JSON.stringify(dados))
+}
+
+
+function lerCorpo(req) {
+    return new Promise((resolve, reject) => {
+        let corpo = ''
+        req.on('data', pedaco => corpo += pedaco)
+        req.on('end', () => {
+            try { resolve(JSON.parse(corpo || '{}')) }
+            catch (erro) { reject(erro) }
+        })
+    })
+}
+
+
+const servidor = http.createServer(async (req, res) => {
+    // GET /api/categorias -> lista as categorias
+    if (req.url === '/api/categorias' && req.method === 'GET') {
+        const linhas = await executarQueryNeon('SELECT * FROM categoria ORDER BY id_categoria')
+        if (linhas === null) return responderJSON(res, 500, { erro: 'Falha ao consultar o banco' })
+        return responderJSON(res, 200, linhas)
+    }
+
+
+    // POST /api/categorias -> cadastra uma categoria nova
+    if (req.url === '/api/categorias' && req.method === 'POST') {
+        let corpo
+        try { corpo = await lerCorpo(req) }
+        catch { return responderJSON(res, 400, { erro: 'JSON inválido' }) }
+
+
+        const descricao = (corpo.descricao || '').trim()
+        if (!descricao) return responderJSON(res, 400, { erro: 'Informe a descrição' })
+
+
+        const linhas = await executarQueryNeon(
+            'INSERT INTO categoria (descricao) VALUES ($1) RETURNING *',
+            [descricao]
+        )
+        if (linhas === null) return responderJSON(res, 500, { erro: 'Falha ao inserir no banco' })
+        return responderJSON(res, 201, linhas[0])
+    }
+
+
+    // edita uma categoria  4 minutos valendo nota 3 pontos
+    if (req.url === '/api/editarCategorias' && req.method === 'POST') {
+        let corpo
+        try { corpo = await lerCorpo(req) }
+        catch { return responderJSON(res, 400, { erro: 'JSON inválido' }) }
+        const id_categoria = (corpo.id_descricao || '')
+        const descricao = (corpo.descricao || '').trim()
+        if (!descricao || !id_categoria) return responderJSON(res, 400, { erro: 'Informe a descrição' })
+
+
+        const linhas = await executarQueryNeon(
+            'UPDATE categoria (descricao) VALUES ($1) where id_categoria = $1 RETURNING *',
+            [id_categoria, descricao]
+        )
+        if (linhas === null) return responderJSON(res, 500, { erro: 'Falha ao inserir no banco' })
+        return responderJSON(res, 201, linhas[0])
+
+
+        // exclui uma categoria quem é a entidade forte categoria ou produto ?
+    if (req.url === '/api/excluirCategorias' && req.method==='POST')
+    {
+        let corpo 
+        try{corpo = await lerCorpo(req)}
+        catch{return responderJSON(res,400,{erro:'ID null'})}
+
+
+        const conteudo =(corpo.id_categoria || '') //trim só funciona para strings 
+        if(!conteudo) return responderJSON(res,400,{erro:'Informe o ID'})
+        const linhas = await executarQueryNeon(
+            'DELETE FROM categoria WHERE id_categoria = $1 RETURNING *', [conteudo])// nome de variavel errada
+
+
+        if (linhas === null) return responderJSON(res, 500, { erro: 'Falha ao deletar no banco' })
+        return responderJSON(res, 201, linhas[0])
+
+
+    }
+    // Arquivos da página
+    const rota = arquivos[req.url]
+    if (rota) {
+        res.writeHead(200, { 'Content-Type': rota.tipo })
+        return fs.createReadStream(path.join(__dirname, rota.arquivo)).pipe(res)
+    }
+
+
+    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' })
+    res.end('Página não encontrada')
+})
+
+
+servidor.listen(PORTA, () => {
+    console.log(`Loja do Zé rodando em http://localhost:${PORTA}`)
+})
+
+
+
+
+
+
+style.css
+
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+    font-family: Arial, Helvetica, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eef1f5;
+    color:#1a1a1a;
+    padding: 24px;
+}
+.pagina {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+.card{
+    width: 100%;
+    max-width: 640px;
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+}
+.card-cabecalho{
+    padding: 30px 40px;
+    background: linear-gradient( 160deg,#1f6fe0, #1452b0);
+    color: #fff;
+}
+
+.card-cabecalho h1{
+    font-size:24px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.card-subtitulo{
+    margin-top: 8px;
+    font-size: 13px;
+    opacity: 0.85;
+}
+
+.card-corpo{
+    display:flex;
+    flex-direction: column;
+    gap: 32px;
+    padding: 32px ;
+}
+
+.secao-form h2,
+.secao-lista h2{
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #1452b0;
+    margin-bottom: 14px;
+}
+
+.form-categoria{
+    display: flex;
+    gap:12px;
+}
+.form-categoria input
+{
+    flex: 1;
+    padding: 12px 18px;
+    border: 1px solid #dde3ec;
+    border-radius: 999px;
+    font-size: 14px;
+    outline: none;
+}
+.form-categoria input:focus{
+    border-color: #1f6fe0;
+    box-shadow: 0 0 0 3px rgba(31, 111, 224, 0.15);
+}
+.mensagem{
+    display: none;
+    margin-top: 10px;
+    font-size: 13px;
+}
+.mensagem:not(:empty)
+{
+    display: block;
+}
+.mensagem-erro {
+    color:#d03838;
+}
+.mensagem-sucesso{
+    color:#1a8f5f
+}
+
+.btn{
+    border: none;
+    border-radius: 999px;
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+}
+
+.btn:hover{
+    opacity: 0.85;
+}
+
+.btn-cadastrar,
+.btn-salvar{
+    background: #2ecc8f;
+    color: #fff;
+    text-transform: uppercase;
+}
+
+.btn-editar{
+    background: #e8f0fe;
+    color: #1452b0;
+}
+
+.btn-excluir{
+    background: #fdeaea;
+    color: #c92a2a;
+}
+
+.lista-categorias {
+    list-style:none ;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.categoria-item{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: #f7f9fc;
+    border: 1px solid #eef1f5;
+    border-radius: 12px;
+    padding: 12px 16px;
+}
+
+
+
+
+
+
+
+Diogo, corrigi os três arquivos JavaScript. O ZIP inclui um LEIA-ME.md que explica cada linha adicionada ou alterada, com o número da linha, o que ela faz e por que entrou.
+
+loja-do-ze-corrigida.zip
+
+Pra rodar agora
+
+Extraia o ZIP e substitua app.js, server.js e script_db_quantum.js na pasta do seu projeto. Use o .env que já tem sua DATABASE_URL.
+No terminal dessa pasta, rode npm install e depois npm start.
+Abra http://localhost:3001. Cadastre Brinquedos, edite para Jogos, recarregue a página e confira se a mudança foi salva. Depois exclua a categoria de teste.
+O conserto principal foi ligar o botão Editar ao campo da própria categoria e o botão Salvar ao UPDATE no banco. O SQL agora usa $1 para a descrição nova e $2 para o ID da categoria. Também fechei a rota de edição com a chave que faltava, deixando a rota de exclusão acessível.
+
+Teste: listagem, cadastro, edição e exclusão passaram localmente com o banco simulado. A conexão com seu Neon ainda precisa ser confirmada ao rodar com seu .env.
